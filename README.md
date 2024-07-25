@@ -1,5 +1,5 @@
 # Thinkpad T420 coreboot + SeaBIOS guide
-This is a guide on externally flashing [coreboot](https://www.coreboot.org/) + [SeaBIOS](https://www.coreboot.org/SeaBIOS) payload onto a Lenovo Thinkpad T420. If you do not have a T420, some stuff in this guide may apply, however safer alternatives like [skulls](https://github.com/merge/skulls) and [Ivyrain](https://1vyra.in/) also exist for other models. Flashing can be done with either a CH341A USB programmer + Linux, or a SOIC8 Clip + Jumper Wires + Raspberry Pi.
+This is a guide on externally flashing [coreboot](https://www.coreboot.org/) + [SeaBIOS](https://www.coreboot.org/SeaBIOS) payload onto a Lenovo Thinkpad T420. If you do not have a T420, some stuff in this guide may apply, however safer alternatives like [skulls](https://github.com/merge/skulls) and [Ivyrain](https://1vyra.in/) also exist for other models. Flashing can be done with either a CH341A USB programmer + Linux, or a SOIC8 Clip + Jumper Wires + Raspberry Pi (RPi).
 ## Materials Needed
 * **Thinkpad T420**
 * **PH0 screwdriver**
@@ -7,6 +7,7 @@ This is a guide on externally flashing [coreboot](https://www.coreboot.org/) + [
 * **Raspberry Pi running Raspbian** *(Note: Flashing is easier on Raspbian as the GPIO pins, SPI, and I2C are easily configurable. If you are running another distribution, you may require additional configuration)*
 * **Female to Female Dupont Jumper wires** *(Note: Not necessary if using a CH341A USB below)*
 * **SOIC8 Clip** *(Note: The [Pomona clip](https://www.amazon.com/Pomona-Electronics-5250-Plated-Spacing/dp/B00JJ4G13I/ref=sr_1_2?crid=1R2NGULBCMQWC&dib=eyJ2IjoiMSJ9.MgDkCNLP219eQHD9nenoMCRit2rUwnzhZ6KkErstoI8PYaYZMB0r9CsnHyGU4AvrjWQUYUTpVbAwnWa0j59LKD6bGDTnJ9rfggneDb3Ai1YKdd1Q8piCpKY5anQZdZvXOMypXf0WlR9xUXOVvfDKsI915t7fjfVEw3EfmWLNvE0zJ__KYE9SoJ-z0M-fYdo-gITfZa5Nr3FLfzWsGwdFCC4MemKXdNvWFdSv3ENzoJ6pTNTVHoWraBdu0j0Vn0stYcN8Op2RySLmGveOvDhXZ20lu-gddV5RrVnmhEDeyEM.Y7jw5JXj0mq4metg3JLFDT7sEVQsj7bMMbl078PllSA&dib_tag=se) is the most reliable, however cheaper alternatives like a [CH341A USB](https://www.amazon.com/Organizer-Socket-Adpter-Programmer-CH341A/dp/B07R5LPTYM/ref=sr_1_4?crid=33CF6XMPFSQAR&dib=eyJ2IjoiMSJ9.UzyR0qbHGqQm_D9pv0cdFLsJG8gxrPg6g9QGljrxG3UckPrKJwzKDvCKTVh5lEs7uL4ncRktrvdmi7KD6U2EVRR-1NfaE1oPAqjkgGDIIMI_ftmky4cOdQFhR80QFODrsbzWd6k8_1UrUs0bnT5M7__4fScTWsJdkX7HzhlvNJw6RVO72Bd5XTuKArpyT2GcjdFp54UviQgykaHXn4QiAVerkytmpOH_hRqi5JzyHYjh8uJDom40ur3Pelzpg5UgvEzRe2Fj8xOhpkOBCDtBouX7HMLc5kwV_v2hCd0HuAA.7avPI0fja_C0nAdC7wtPyDRzKKkhku0Yze9gy0jCG5o&dib_tag=se) programmer work just as fine. I used these [SDK08](https://www.amazon.com/SDK08-Ultra-Small-Micro-Adapters/dp/B0B4DHVDRV/ref=sr_1_1?crid=1CRHV7QGG2RYM&dib=eyJ2IjoiMSJ9.8AiBpRWPYXwbD6Zez8PI5TgMvDEh0XYjt6qvKokkQK-4bJ1K57zlrYJkjIhGWH7yqOUlwQM3eGHGefVBIh1HfITFfhWmIxoOjxCwhxAjQ0UxCSNuliR-cEU3B_0QdEOdL6DcXwhMHS0wjCayDUXmyPd2j67NsQ4RaJnUAAr1vcpJal5os-0hzXRWM1X2ijOslYXkfneYVFdbr3_c2-cq8CzU7MfLBlSPbrANeWEttoUBHjLtqoFigynXiF0knB75ewELQL0c6u9pWyUFmr40jkp-eZRTWY6I80iL7aoHZBQ.kGqC-M37OcSo3nNiVPz0JMGLJla_oADZxqlFvJm4yzs&dib_tag=se) clips)*
+  * If you plan to use a CH341A programmer, you do not need to follow many of the instructions directed to RPi users
 * **Another computer to build coreboot on** *(Note: coreboot can be compiled on the Raspberry Pi, but it will take many hours and even days to compile. I highly recommend using another linux machine. I used a virtual machine running Debian)*
 
 ## Raspberry Pi Setup
@@ -41,15 +42,15 @@ The model of the chip is written on the EEPROM, for the T420, the chip is the [M
 Following [flashrom's suggestions](https://wiki.flashrom.org/RaspberryPi) for pin connections, the final pins to connect with jumpers and clips are as shown in the table and accompanying diagram:
 
 | EEPROM PIN # | EEPROM PIN HEADER | RPi PIN # |
-|---|---|---|
-1|CS#|24
-2|SO|21
-3|WP#|See below
-4|GND|25
-5|SI|19
-6|SCLK|23
-7|HOLD#|See below
-8|VCC|17
+| ------------ | ----------------- | --------- |
+| 1            | CS#               | 24        |
+| 2            | SO                | 21        |
+| 3            | WP#               | See below |
+| 4            | GND               | 25        |
+| 5            | SI                | 19        |
+| 6            | SCLK              | 23        |
+| 7            | HOLD#             | See below |
+| 8            | VCC               | 17        |
 
 ![diagram](images/image-3.png)
 
@@ -99,7 +100,7 @@ $ md5sum romcopy1.bin romcopy2.bin romcopy3.bin
 75a3a3a4b3fa5231850a806f2ff5d0a6  romcopy2.bin
 75a3a3a4b3fa5231850a806f2ff5d0a6  romcopy3.bin
 ```
-If the md5 sums of all the files do not match, **DO NOT CONTINUE.** This means you got a bad read, and you need to recheck your pin connections and make sure all connections are secure and stable. 
+If the md5 sums of all the files do not match, **DO NOT CONTINUE.** This means you got a bad read, and you need to recheck your pin connections and make sure all connections are secure and stable, and you need to reread and check the MD5 sums.
 ### (Optional) Intel ME Cleaner
 Optionally, you can clean the Intel Management Engine from your coreboot build using [me_cleaner](https://github.com/corna/me_cleaner). If you don't already have git, install it with `sudo apt install git`, then run the following:
 <pre>
@@ -119,9 +120,9 @@ $ flashromalias
 ...
 Found Macronix flash chip "MX25L6406E/MX25L6408E" (8192 kB, SPI) on linux_spi.
 ```
-which will run the alias. The alias will be erased after rebooting, and you need to set it again to use it.
+which will run the alias. The alias will be erased after rebooting, and you need to set it again to use it. The commands in this guide will not use the alias
 
-## Compiling coreboot
+## Configuration prep
 On the second (hopefully more powerful) Linux computer, [a few more tools](https://doc.coreboot.org/tutorial/part1.html#download-configure-and-build-coreboot) are needed for coreboot to compile correctly.
 
 For Debian based distros:
@@ -143,9 +144,9 @@ $ cd ./coreboot/util/ifdtool
 $ sudo make install
 ```
 ---
-The ifdtool is used to seperate the existing rom into 4 flash regions. Therefore we need to transfer a copy of the rom to our second computer. If you use me_cleaner, you should transfer the cleaned copy. You can use a flash drive, or a program such as [scp](https://linux.die.net/man/1/scp) to transfer over network. 
+<div id="scp">The ifdtool is used to seperate the existing rom into 4 flash regions. Therefore we need to transfer a copy of the rom to our second computer. If you use me_cleaner, you should transfer the cleaned copy. You can use a flash drive, or a program such as <a href="https://linux.die.net/man/1/scp"> scp</a> to transfer over network. If you plan to compile on a RPi, you can ignore the above.</div> </br>
 
-Once you have the rom binary on the computer you will compile coreboot on, navigate to it and run the ifd tool. For my cleaned rom, I ran
+Once you have the rom binary on the computer you will compile coreboot on, change directory to the folder with the rom binary and run the ifd tool. For my cleaned rom, I ran
 ```
 $ ifdtool -x rom_cleaned.bin
 $ ls
@@ -154,11 +155,108 @@ flashregion_1_bios.bin             rom_cleaned.bin
 flashregion_2_intel_me.bin
 ```
 
-Only the flashdescriptor, intel_me, and gbe files are needed. Rename the files so that coreboot can autodetect the files when we move them later.
+Only the flashdescriptor, intel_me, and gbe files are needed. Rename the files so that coreboot can autodetect the files when we move them.
 ```
 $ mv flashregion_0_flashdescriptor.bin descriptor.bin
 $ mv flashregion_2_intel_me.bin me.bin
 $ mv flashregion_3_gbe.bin gbe.bin
 ```
+These files need to be in the coreboot/3rdparty/blobs/mainboard/lenovo/t420 folder. Make the folders and move the renamed files to the folder. In my case, my renamed files were in my home directory, so I did
+```
+$ cd coreboot/3rdparty/blobs
+$ mkdir -p mainboard/lenovo/t420/
+$ cd mainboard/lenovo/t420
+$
+$ mv ~/descriptor.bin ./
+$ mv ~/me.bin ./
+$ mv ~/gbe.bin ./
+```
 ---
+## Configuration and Compiling coreboot
+`cd` back to the top of the coreboot directory and open the coreboot config menu:
+```
+$ cd ~/coreboot
+$ make nconfig
+```
+An interactive nconfig menu will appear. Look through all the choices in all the menus and select the ones I have here. This config is a pretty minimal just-get-it-working build, and you can add more config options if wanted.
+```
+General Setup --->
+    Compiler to use (GCC) --->
+    [*] Build a separate romstage
+    [*] Include the coreboot .config file into the ROM image
+    [*] Create a table of timestamps collected during boot
+    [*]  Print the timestamp values on the console
+    [*] Allow use of binary-only repository
 
+Mainboard --->
+    Mainboard vendor (Lenovo) --->
+    Mainboard model (Thinkpad T420) --->
+
+Chipset --->
+    [*] Enable VMX for virtualization
+    [*] Set IA32_FEATURE_CONTROL lock bit
+    [*] Lock the AES-NI emablement state
+        Include CPU microcode in CBFS (Generate from tree) --->
+    [*] Enable ECC if supported
+    [*] Lock down chipset in coreboot
+    [*] Beep on fatal error
+    [*] Flash LEDs on fatal error
+
+    [*] Add Intel descriptor.bin file
+        (3rdparty/blobs/mainboard/$(MAINBOARDDIR)/descriptor.bin) Path and filename of the descripto
+    [*] Add Intel ME/TXE firmware
+        (3rdparty/blobs/mainboard/$(MAINBOARDDIR)/me.bin) Path to management engine firmware
+    [*] Add gigabit ethernet configuration
+        (3rdparty/blobs/mainboard/$(MAINBOARDDIR)/gbe.bin) Path to gigabit ethernet configuration
+
+Devices --->
+    Graphics initialization (Use libgfxinit) --->
+    Early (romstage) graphics initialization (None) --->
+    [*] Allow coreboot to set optional PCI bus master bits
+    [*] Any devices
+    [*] Enable PCIe Clock Power Management
+    [*] Enable PCIe ASPM L1 SubState
+    [*] Enable PCIe Hotplug Support
+    [*] Add a Video BIOS Table (VBT) binary to CBFS
+        (sec/mainboard/$(MAINBOARDDIR)/data.vbt) VBT binary path and filename
+    [*] Allocate resources from top down
+
+Generic Drivers --->
+    [*] PS/2 keyboard init
+    [*] Support Intel PCI-e WiFi adapters
+    [*] Support MediaTek PCI-e WiFi adapters
+
+Payload ---> 
+    [ ] Don't add a payload
+        Payload to add (SeaBIOS) --->
+        SeaBIOS version (master) --->
+    [*] Hardware init during option ROM excecution
+    [*] Hardware Interrupts
+    [*] Include generated option rom that implements legacy VGA BIOS compatibility
+    [*] Use LZMA compression for secondary payloads
+    Secondary Payloads --->
+        [*] Load coreinfo as a secondary payload
+        [*] Load Memtest86+ as a secondary payload
+        [*] Load nvramcui as a secondary payload
+        [*] Load tint as a secondary payload
+```
+
+Hit F6 to save the config to `/coreboot/.config`. Then exit with F9.
+
+### Compiling coreboot
+Coreboot needs a cross-compiler to compile the rom for the destination hardware. Fortunately, coreboot provides one. To build the gcc cross-compiler toolchain, `cd` to the coreboot directory and  run
+```
+$ make crossgcc-i386 CPUS=$(nproc)
+```
+This may take a significant amount of time if you are using a RPi or if you forget to allocate more threads to building the toolchain. Once that's done, you can compile:
+```
+$ make CPUS=$(nproc)
+```
+After the compiling is done, the final coreboot.rom image you will flash on your chip is located at `coreboot/build/coreboot.rom`. Move this file back to a directory on the RPi using a flash drive or scp [as explained earlier](#scp). 
+
+## Flashing coreboot
+Before writing to the chip, [read and verify the MD5 sums](#reading-and-build-prep) one more time to ensure a secure connection. Then, when you are ready to flash, navigate to the directory with the coreboot.rom file and run 
+```
+flashrom -p linux_spi:dev=/dev/spidev0.0,spispeed=512 -c "MX25L6406E/MX25L6408E" -w coreboot.rom -V
+```
+When the writing process is done, `sudo poweroff` the RPi and disconnect power, then remove the clip from the chip. Reassemble the laptop until the keyboard is attached and poweron. If all went well, the laptop will boot op to the SeaBIOS splash screen. 
